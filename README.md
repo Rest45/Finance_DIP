@@ -17,6 +17,12 @@
   <img src="https://img.shields.io/badge/Languages-AM%20%7C%20RU%20%7C%20EN-orange?style=flat-square" alt="Multilingual" />
 </p>
 
+<p align="center">
+  <a href="https://render.com/deploy?repo=https://github.com/Rest45/Finance_DIP" target="_blank" rel="noopener noreferrer">
+    <img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render" />
+  </a>
+</p>
+
 ---
 
 ## 📖 About The Project
@@ -264,6 +270,20 @@ The Express server is configured to serve the production-built React frontend:
    npm start
    ```
 The full application (frontend UI + backend REST API) will run on a single port at `http://localhost:5000`.
+
+### Deploy to Render
+
+This repository includes a [`render.yaml`](file:///render.yaml) Blueprint to deploy both the backend API and frontend static application with a single click:
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Rest45/Finance_DIP)
+
+**Required Environment Variables on Render:**
+- **Backend (`Finance_DIP`):**
+  - `DATABASE_URL`: PostgreSQL connection string (Render PostgreSQL or external database)
+  - `JWT_SECRET`: Random secret string for signing JWT tokens
+  - `PORT`: Service port (defaults to 5000)
+- **Frontend (`Finance_DIP-1`):**
+  - `VITE_API_URL`: Backend URL (e.g., `https://finance-dip.onrender.com`)
 
 ---
 
