@@ -50,7 +50,7 @@ async function migrate() {
       ADD COLUMN IF NOT EXISTS ip_address VARCHAR(100),
       ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'SUCCESS';
     `);
-    console.log('audit_logs table verified.');
+    console.log('✓ audit_logs table created & updated with user_email');
 
     // 5. Seed / Update 1 designated Admin user
     const adminEmail = 'admin@finance.app';

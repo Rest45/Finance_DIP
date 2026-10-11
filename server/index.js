@@ -505,7 +505,7 @@ app.listen(PORT, () => {
   
   pool.query('SELECT current_database()', async (err, res) => {
     if (!err && res.rows[0]) {
-      console.log('Подключено к базе данных:', res.rows[0].current_database);
+      console.log('💡 Подключено к базе данных:', res.rows[0].current_database);
 
       // Автоматическая проверка и обновление схемы БД (миграция при старте)
       try {

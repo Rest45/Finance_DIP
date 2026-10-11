@@ -1,0 +1,31 @@
+# Exported from Render on 2026-10-11T14:00:49Z
+version: "1"
+services:
+- type: web
+  name: Finance_DIP
+  runtime: node
+  repo: https://github.com/Rest45/Finance_DIP
+  plan: free
+  envVars:
+  - key: DATABASE_URL
+    sync: false
+  - key: JWT_SECRET
+    sync: false
+  - key: PORT
+    sync: false
+  region: oregon
+  buildCommand: npm install && npm run migrate
+  startCommand: npm start
+  autoDeployTrigger: commit
+  rootDir: server/
+- type: web
+  name: Finance_DIP-1
+  runtime: static
+  repo: https://github.com/Rest45/Finance_DIP
+  envVars:
+  - key: VITE_API_URL
+    sync: false
+  buildCommand: npm install; npm run build
+  staticPublishPath: dist
+  autoDeployTrigger: commit
+  rootDir: client/
