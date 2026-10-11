@@ -6,16 +6,19 @@ import Dashboard from './pages/Dashboard';
 import Admin from './pages/Admin';
 
 const navTranslations = {
-  ru: { register: 'Регистрация', login: 'Вход', finances: 'Мои финансы', appName: 'FinanceHub' },
-  en: { register: 'Register', login: 'Login', finances: 'My Finances', appName: 'FinanceHub' },
-  hy: { register: 'Գրանցում', login: 'Մուտք', finances: 'Իմ ֆինանսները', appName: 'FinanceHub' }
+  ru: { register: 'Регистрация', login: 'Вход', finances: 'Мои финансы', admin: 'Админ-панель', appName: 'FinanceHub' },
+  en: { register: 'Register', login: 'Login', finances: 'My Finances', admin: 'Admin Panel', appName: 'FinanceHub' },
+  hy: { register: 'Գրանցում', login: 'Մուտք', finances: 'Ֆինանսներ', admin: 'Ադմին պանել', appName: 'FinanceHub' }
 };
 
 function NavigationBar({ lang, onLangChange, currentUser }) {
   const t = navTranslations[lang] || navTranslations.hy;
   const location = useLocation();
 
+  const isFinancesActive = location.pathname === '/dashboard' || location.pathname === '/history' || location.pathname === '/transactions' || location.pathname === '/analytics';
+  const isAdminActive = location.pathname === '/admin';
   const isActive = (path) => location.pathname === path;
+  const isAdmin = currentUser && currentUser.role === 'admin';
 
   return (
     <nav style={{
@@ -60,21 +63,54 @@ function NavigationBar({ lang, onLangChange, currentUser }) {
         {/* Navigation Links */}
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {currentUser ? (
-            <Link 
-              to="/dashboard" 
-              style={{
-                color: isActive('/dashboard') ? '#ffffff' : '#94a3b8',
-                backgroundColor: isActive('/dashboard') ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                textDecoration: 'none',
-                fontWeight: 600,
-                fontSize: '0.9rem',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              {t.finances}
-            </Link>
+            <>
+              <Link 
+                to="/dashboard" 
+                style={{
+                  color: isFinancesActive ? '#ffffff' : '#94a3b8',
+                  backgroundColor: isFinancesActive ? 'rgba(255, 255, 255, 0.12)' : 'transparent',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="5" width="20" height="14" rx="2" />
+                  <line x1="2" y1="10" x2="22" y2="10" />
+                </svg>
+                {t.finances}
+              </Link>
+              {isAdmin && (
+                <Link 
+                  to="/admin" 
+                  style={{
+                    color: isAdminActive ? '#ffffff' : '#38bdf8',
+                    backgroundColor: isAdminActive ? 'rgba(56, 189, 248, 0.2)' : 'rgba(56, 189, 248, 0.08)',
+                    border: '1px solid rgba(56, 189, 248, 0.3)',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                  {t.admin}
+                </Link>
+              )}
+            </>
           ) : (
             <>
               <Link 
@@ -201,6 +237,9 @@ function App() {
             <Route path="/" element={<Login lang={lang} />} />
             <Route path="/register" element={<Register lang={lang} />} />
             <Route path="/dashboard" element={<Dashboard lang={lang} />} />
+            <Route path="/history" element={<Dashboard lang={lang} />} />
+            <Route path="/transactions" element={<Dashboard lang={lang} />} />
+            <Route path="/analytics" element={<Dashboard lang={lang} />} />
             {/* Админ-панель доступна по прямому URL только для роли admin */}
             <Route 
               path="/admin" 

@@ -147,7 +147,7 @@ const adminTranslations = {
     tabCategories: 'Կատեգորիաներ',
     tabLogs: 'Անվտանգության Լոգեր',
     refresh: 'Թարմացնել',
-    backToDashboard: 'Իմ ֆինանսները',
+    backToDashboard: 'Ֆինանսներ',
     
     totalUsers: 'Ընդհանուր Օգտատերեր',
     activeUsers: 'Ակտիվ Օգտատերեր',

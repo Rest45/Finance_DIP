@@ -242,8 +242,8 @@ const authenticateAdmin = async (req, res, next) => {
   }
 };
 
-// Защищаем все административные маршруты
-app.use('/admin', authenticateAdmin);
+// Защищаем административные API маршруты
+app.use(['/admin/users', '/admin/categories', '/admin/stats', '/admin/logs'], authenticateAdmin);
 
 // =========================================================
 // ADMIN PANEL API (УПРАВЛЕНИЕ, СТАТИСТИКА, МОНИТОРИНГ)
@@ -505,10 +505,7 @@ app.listen(PORT, () => {
   
   pool.query('SELECT current_database()', async (err, res) => {
     if (!err && res.rows[0]) {
-<<<<<<< HEAD
       console.log('Подключено к базе данных:', res.rows[0].current_database);
-=======
-      console.log('💡 Подключено к базе данных:', res.rows[0].current_database);
 
       // Автоматическая проверка и обновление схемы БД (миграция при старте)
       try {
@@ -534,11 +531,10 @@ app.listen(PORT, () => {
           ADD COLUMN IF NOT EXISTS ip_address VARCHAR(100),
           ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'SUCCESS';
         `);
-        console.log(' Структура базы данных проверена (users.role, audit_logs)');
+        console.log('Структура базы данных проверена (users.role, audit_logs)');
       } catch (migrationErr) {
-        console.error(' Ошибка автоматической миграции структуры БД:', migrationErr.message);
+        console.error('Ошибка автоматической миграции структуры БД:', migrationErr.message);
       }
->>>>>>> b8bcf4715a24df12e2069fd462e292994a39c655
     }
   });
 });
