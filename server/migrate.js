@@ -23,8 +23,15 @@ async function migrate() {
         status VARCHAR(20) DEFAULT 'SUCCESS',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
+
+      ALTER TABLE audit_logs 
+      ADD COLUMN IF NOT EXISTS user_email VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS action VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
+      ADD COLUMN IF NOT EXISTS details TEXT,
+      ADD COLUMN IF NOT EXISTS ip_address VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'SUCCESS';
     `);
-    console.log('✓ audit_logs table created');
+    console.log('✓ audit_logs table created & updated with user_email');
 
     // 3. Make sure ashotrestevanyan38@gmail.com or first user has role = 'admin'
     await pool.query(`
