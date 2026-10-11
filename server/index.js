@@ -46,10 +46,10 @@ app.post('/users', async (req, res) => {
       return res.status(400).json({ error: 'Пользователь с таким email уже существует' });
     }
 
-    // Проверяем, первый ли это пользователь в системе или почта создателя
+    // Роль: по умолчанию 'user', 'admin' только для первого пользователя или создателя
     const countRes = await pool.query('SELECT COUNT(*)::int AS count FROM users');
     const isFirstUser = countRes.rows[0].count === 0;
-    const role = (isFirstUser || email.toLowerCase() === 'ashotrestevanyan38@gmail.com' || email.toLowerCase().startsWith('admin@')) 
+    const role = (isFirstUser || email.toLowerCase() === 'ashotrestevanyan38@gmail.com') 
       ? 'admin' 
       : 'user';
 
@@ -191,7 +191,62 @@ app.delete('/transactions/:id', async (req, res) => {
 });
 
 // =========================================================
-// 👑 ADMIN PANEL API (УПРАВЛЕНИЕ, СТАТИСТИКА, МОНИТОРИНГ)
+// ADMIN AUTHENTICATION & ACCESS CONTROL MIDDLEWARE
+// =========================================================
+const authenticateAdmin = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+    const headerUserId = req.headers['x-user-id'];
+
+    let userId = null;
+
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        userId = decoded.id;
+      } catch (tokenErr) {
+        // Fallback to headerUserId if token verification fails
+      }
+    }
+
+    if (!userId && headerUserId) {
+      userId = headerUserId;
+    }
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Доступ ограничен: требуется авторизация' });
+    }
+
+    // Всегда проверяем актуальную роль и блокировку в базе данных
+    const userRes = await pool.query('SELECT id, name, email, role, is_blocked FROM users WHERE id = $1', [userId]);
+    if (userRes.rows.length === 0) {
+      return res.status(401).json({ error: 'Пользователь не найден' });
+    }
+
+    const user = userRes.rows[0];
+    if (user.is_blocked) {
+      return res.status(403).json({ error: 'Аккаунт заблокирован' });
+    }
+
+    if (user.role !== 'admin') {
+      await logAction('UNAUTHORIZED_ADMIN_ACCESS', user.email, `Попытка доступа без прав администратора к ${req.originalUrl}`, 'WARNING', req.ip);
+      return res.status(403).json({ error: 'Доступ запрещен: требуются права администратора' });
+    }
+
+    req.adminUser = user;
+    next();
+  } catch (err) {
+    console.error('Admin authentication error:', err.message);
+    res.status(500).json({ error: 'Ошибка сервера при проверке прав доступа' });
+  }
+};
+
+// Защищаем все административные маршруты
+app.use('/admin', authenticateAdmin);
+
+// =========================================================
+// ADMIN PANEL API (УПРАВЛЕНИЕ, СТАТИСТИКА, МОНИТОРИНГ)
 // =========================================================
 
 // A. Управление пользователями: список всех пользователей с аналитикой их транзакций
@@ -446,11 +501,11 @@ app.get(/.*/, (req, res) => {
 // Запуск сервера
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Полноценный сервер запущен на http://localhost:${PORT}`);
+  console.log(`Сервер запущен на http://localhost:${PORT}`);
   
   pool.query('SELECT current_database()', (err, res) => {
     if (!err && res.rows[0]) {
-      console.log('💡 Подключено к базе данных:', res.rows[0].current_database);
+      console.log('Подключено к базе данных:', res.rows[0].current_database);
     }
   });
 });

@@ -11,12 +11,12 @@ const adminTranslations = {
   ru: {
     title: 'Панель администратора',
     subtitle: 'Управление платформой, мониторинг и глобальная статистика',
-    tabAnalytics: '📊 Аналитика платформы',
-    tabUsers: '👥 Пользователи',
-    tabCategories: '🏷️ Управление категориями',
-    tabLogs: '🛡️ Мониторинг и логи',
+    tabAnalytics: 'Аналитика платформы',
+    tabUsers: 'Пользователи',
+    tabCategories: 'Управление категориями',
+    tabLogs: 'Мониторинг и логи',
     refresh: 'Обновить данные',
-    backToDashboard: '← К моим финансам',
+    backToDashboard: 'К моим финансам',
     
     // Метрики
     totalUsers: 'Всего пользователей',
@@ -79,12 +79,12 @@ const adminTranslations = {
   en: {
     title: 'Admin Control Center',
     subtitle: 'Platform management, security monitoring, and global metrics',
-    tabAnalytics: '📊 Platform Analytics',
-    tabUsers: '👥 User Management',
-    tabCategories: '🏷️ Categories',
-    tabLogs: '🛡️ Security Logs',
+    tabAnalytics: 'Platform Analytics',
+    tabUsers: 'User Management',
+    tabCategories: 'Categories',
+    tabLogs: 'Security Logs',
     refresh: 'Refresh Data',
-    backToDashboard: '← Back to Finances',
+    backToDashboard: 'Back to Finances',
     
     totalUsers: 'Total Users',
     activeUsers: 'Active Users',
@@ -142,12 +142,12 @@ const adminTranslations = {
   hy: {
     title: 'Ադմինիստրատորի Վահանակ',
     subtitle: 'Համակարգի կառավարում, անվտանգության մոնիտորինգ և գլոբալ վիճակագրություն',
-    tabAnalytics: '📊 Համակարգի Վերլուծություն',
-    tabUsers: '👥 Օգտատերեր',
-    tabCategories: '🏷️ Կատեգորիաներ',
-    tabLogs: '🛡️ Անվտանգության Լոգեր',
+    tabAnalytics: 'Համակարգի Վերլուծություն',
+    tabUsers: 'Օգտատերեր',
+    tabCategories: 'Կատեգորիաներ',
+    tabLogs: 'Անվտանգության Լոգեր',
     refresh: 'Թարմացնել',
-    backToDashboard: '← Իմ ֆինանսները',
+    backToDashboard: 'Իմ ֆինանսները',
     
     totalUsers: 'Ընդհանուր Օգտատերեր',
     activeUsers: 'Ակտիվ Օգտատերեր',
@@ -224,18 +224,35 @@ function Admin({ lang }) {
   const [editingCatId, setEditingCatId] = useState(null);
   const [editingCatName, setEditingCatName] = useState('');
 
-  // Текущий пользователь
-  const currentUser = JSON.parse(localStorage.getItem('user')) || {};
+  // Текущий пользователь и проверка прав
+  const [currentUser] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user')) || null;
+    } catch {
+      return null;
+    }
+  });
+  const isAdmin = currentUser && currentUser.role === 'admin';
   const t = adminTranslations[lang] || adminTranslations.ru;
 
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    const headers = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    if (currentUser?.id) headers['x-user-id'] = currentUser.id;
+    return { headers };
+  };
+
   const fetchAllData = async () => {
+    if (!isAdmin) return;
     try {
       setLoading(true);
+      const authConfig = getAuthHeaders();
       const [statsRes, usersRes, catRes, logsRes] = await Promise.all([
-        axios.get(`${API_URL}/admin/stats`),
-        axios.get(`${API_URL}/admin/users`),
+        axios.get(`${API_URL}/admin/stats`, authConfig),
+        axios.get(`${API_URL}/admin/users`, authConfig),
         axios.get(`${API_URL}/categories`),
-        axios.get(`${API_URL}/admin/logs`)
+        axios.get(`${API_URL}/admin/logs`, authConfig)
       ]);
       setStats(statsRes.data);
       setUsers(usersRes.data);
@@ -249,13 +266,17 @@ function Admin({ lang }) {
   };
 
   useEffect(() => {
-    fetchAllData();
-  }, []);
+    if (isAdmin) {
+      fetchAllData();
+    } else {
+      setLoading(false);
+    }
+  }, [isAdmin]);
 
   // Действия над пользователями
   const handleToggleBlock = async (userId) => {
     try {
-      await axios.put(`${API_URL}/admin/users/${userId}/block`);
+      await axios.put(`${API_URL}/admin/users/${userId}/block`, {}, getAuthHeaders());
       fetchAllData();
     } catch (err) {
       alert(err.response?.data?.error || 'Error toggling user block state');
@@ -265,7 +286,7 @@ function Admin({ lang }) {
   const handleToggleRole = async (userId, currentRole) => {
     try {
       const newRole = currentRole === 'admin' ? 'user' : 'admin';
-      await axios.put(`${API_URL}/admin/users/${userId}/role`, { role: newRole });
+      await axios.put(`${API_URL}/admin/users/${userId}/role`, { role: newRole }, getAuthHeaders());
       fetchAllData();
     } catch (err) {
       alert(err.response?.data?.error || 'Error changing role');
@@ -275,7 +296,7 @@ function Admin({ lang }) {
   const handleDeleteUser = async (userId) => {
     if (!window.confirm(t.confirmDeleteUser)) return;
     try {
-      await axios.delete(`${API_URL}/admin/users/${userId}`);
+      await axios.delete(`${API_URL}/admin/users/${userId}`, getAuthHeaders());
       fetchAllData();
     } catch (err) {
       alert(err.response?.data?.error || 'Error deleting user');
@@ -290,7 +311,7 @@ function Admin({ lang }) {
       await axios.post(`${API_URL}/admin/categories`, {
         name: newCatName.trim(),
         type: newCatType
-      });
+      }, getAuthHeaders());
       setNewCatName('');
       fetchAllData();
     } catch (err) {
@@ -304,7 +325,7 @@ function Admin({ lang }) {
       await axios.put(`${API_URL}/admin/categories/${id}`, {
         name: editingCatName.trim(),
         type
-      });
+      }, getAuthHeaders());
       setEditingCatId(null);
       setEditingCatName('');
       fetchAllData();
@@ -316,7 +337,7 @@ function Admin({ lang }) {
   const handleDeleteCategory = async (id) => {
     if (!window.confirm(t.confirmDeleteCat)) return;
     try {
-      await axios.delete(`${API_URL}/admin/categories/${id}`);
+      await axios.delete(`${API_URL}/admin/categories/${id}`, getAuthHeaders());
       fetchAllData();
     } catch (err) {
       alert(err.response?.data?.error || 'Error deleting category');
@@ -327,7 +348,7 @@ function Admin({ lang }) {
   const handleClearLogs = async () => {
     if (!window.confirm('Очистить все логи аудита?')) return;
     try {
-      await axios.delete(`${API_URL}/admin/logs`);
+      await axios.delete(`${API_URL}/admin/logs`, getAuthHeaders());
       fetchAllData();
     } catch (err) {
       alert('Error clearing logs');
@@ -348,10 +369,48 @@ function Admin({ lang }) {
 
   const formatMoney = (val) => Number(val || 0).toLocaleString('ru-RU');
 
+  // Если пользователь не админ — показываем экран ограничения доступа
+  if (!isAdmin) {
+    return (
+      <div style={{
+        maxWidth: '540px',
+        margin: '60px auto',
+        padding: '35px 25px',
+        textAlign: 'center',
+        backgroundColor: '#ffffff',
+        borderRadius: '16px',
+        boxShadow: '0 10px 25px rgba(0,0,0,0.08)',
+        border: '1px solid #fee2e2'
+      }}>
+        <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#dc2626', marginBottom: '16px' }}>[403]</div>
+        <h2 style={{ color: '#dc2626', margin: '0 0 12px 0', fontSize: '1.4rem' }}>
+          403 - {lang === 'hy' ? 'Մուտքն արգելված է' : lang === 'ru' ? 'Доступ ограничен' : 'Access Restricted'}
+        </h2>
+        <p style={{ color: '#4b5563', lineHeight: '1.6', marginBottom: '24px', fontSize: '0.95rem' }}>
+          {t.accessDenied || 'Մուտքը սահմանափակված է: Միայն ադմինիստրատորները կարող են մուտք գործել:'}
+        </p>
+        <Link 
+          to="/dashboard" 
+          style={{
+            display: 'inline-block',
+            padding: '10px 22px',
+            backgroundColor: '#3b82f6',
+            color: '#fff',
+            textDecoration: 'none',
+            borderRadius: '8px',
+            fontWeight: 'bold',
+            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+          }}
+        >
+          {t.backToDashboard}
+        </Link>
+      </div>
+    );
+  }
+
   if (loading && !stats) {
     return (
       <div style={{ padding: '60px 20px', textAlign: 'center', color: '#475569', fontSize: '1.2rem' }}>
-        <div style={{ fontSize: '2.5rem', marginBottom: '15px' }}>⚡</div>
         {t.loading}
       </div>
     );
@@ -402,7 +461,7 @@ function Admin({ lang }) {
               gap: '6px'
             }}
           >
-            🔄 {t.refresh}
+            {t.refresh}
           </button>
           <Link
             to="/dashboard"
@@ -509,7 +568,7 @@ function Admin({ lang }) {
         <div>
           {/* Оборот по валютам */}
           <div style={{ background: '#fff', padding: '24px', borderRadius: '14px', border: '1px solid #e2e8f0', marginBottom: '24px' }}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '1.2rem', color: '#0f172a' }}>💰 {t.chartTurnoverTitle}</h3>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '1.2rem', color: '#0f172a' }}>{t.chartTurnoverTitle}</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
               {stats?.currencies?.map((curr) => (
                 <div key={curr.currency} style={{ background: '#f8fafc', padding: '16px', borderRadius: '10px', borderLeft: '4px solid #3b82f6' }}>
@@ -518,7 +577,7 @@ function Admin({ lang }) {
                     {formatMoney(curr.total_turnover)} {curr.currency}
                   </div>
                   <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                    🟢 Доход: {formatMoney(curr.income_total)} | 🔴 Расход: {formatMoney(curr.expense_total)}
+                    Доход: {formatMoney(curr.income_total)} | Расход: {formatMoney(curr.expense_total)}
                   </div>
                 </div>
               ))}
@@ -547,7 +606,7 @@ function Admin({ lang }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
             {/* Топ категорий */}
             <div style={{ background: '#fff', padding: '24px', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ margin: '0 0 16px 0', fontSize: '1.1rem', color: '#0f172a' }}>🏆 {t.chartCategoriesTitle}</h3>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '1.1rem', color: '#0f172a' }}>{t.chartCategoriesTitle}</h3>
               <div style={{ height: '280px' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={stats?.topCategories || []} layout="vertical">
@@ -562,7 +621,7 @@ function Admin({ lang }) {
 
             {/* Соотношение Доход / Расход */}
             <div style={{ background: '#fff', padding: '24px', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ margin: '0 0 16px 0', fontSize: '1.1rem', color: '#0f172a' }}>⚖️ {t.chartTypesTitle}</h3>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '1.1rem', color: '#0f172a' }}>{t.chartTypesTitle}</h3>
               <div style={{ height: '280px' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -677,7 +736,7 @@ function Admin({ lang }) {
                         background: u.role === 'admin' ? '#ede9fe' : '#f1f5f9',
                         color: u.role === 'admin' ? '#7c3aed' : '#475569'
                       }}>
-                        {u.role === 'admin' ? '👑 ADMIN' : 'USER'}
+                        {u.role === 'admin' ? 'ADMIN' : 'USER'}
                       </span>
                     </td>
                     <td style={{ padding: '12px 14px' }}>
@@ -689,7 +748,7 @@ function Admin({ lang }) {
                         background: u.is_blocked ? '#fee2e2' : '#dcfce7',
                         color: u.is_blocked ? '#dc2626' : '#16a34a'
                       }}>
-                        {u.is_blocked ? `⛔ ${t.statusBlocked}` : `✓ ${t.statusActive}`}
+                        {u.is_blocked ? t.statusBlocked : t.statusActive}
                       </span>
                     </td>
                     <td style={{ padding: '12px 14px' }}>
@@ -772,7 +831,7 @@ function Admin({ lang }) {
         <div>
           {/* Форма добавления */}
           <div style={{ background: '#fff', padding: '24px', borderRadius: '14px', border: '1px solid #e2e8f0', marginBottom: '24px' }}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '1.2rem', color: '#0f172a' }}>➕ {t.addCategoryTitle}</h3>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '1.2rem', color: '#0f172a' }}>{t.addCategoryTitle}</h3>
             <form onSubmit={handleAddCategory} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <input 
                 type="text"
@@ -802,8 +861,8 @@ function Admin({ lang }) {
                   cursor: 'pointer'
                 }}
               >
-                <option value="expense">🔴 {t.catTypeExpense}</option>
-                <option value="income">🟢 {t.catTypeIncome}</option>
+                <option value="expense">{t.catTypeExpense}</option>
+                <option value="income">{t.catTypeIncome}</option>
               </select>
               <button
                 type="submit"
@@ -825,7 +884,7 @@ function Admin({ lang }) {
 
           {/* Список существующих категорий */}
           <div style={{ background: '#fff', padding: '24px', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '1.2rem', color: '#0f172a' }}>📋 {t.allCategories} ({categories.length})</h3>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '1.2rem', color: '#0f172a' }}>{t.allCategories} ({categories.length})</h3>
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
@@ -864,7 +923,7 @@ function Admin({ lang }) {
                           fontWeight: 700,
                           color: cat.type === 'income' ? '#16a34a' : '#dc2626'
                         }}>
-                          {cat.type === 'income' ? '🟢 ДОХОД' : '🔴 РАСХОД'}
+                          {cat.type === 'income' ? 'ДОХОД' : 'РАСХОД'}
                         </span>
                       </>
                     )}
@@ -884,7 +943,7 @@ function Admin({ lang }) {
                           fontWeight: 600
                         }}
                       >
-                        ✏️
+                        Edit
                       </button>
                       <button
                         onClick={() => handleDeleteCategory(cat.id)}
@@ -899,7 +958,7 @@ function Admin({ lang }) {
                           fontWeight: 600
                         }}
                       >
-                        🗑️
+                        Delete
                       </button>
                     </div>
                   )}
@@ -915,7 +974,7 @@ function Admin({ lang }) {
         <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #e2e8f0', padding: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <div>
-              <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#0f172a' }}>🛡️ Журнал системных событий и аудита</h3>
+              <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#0f172a' }}>Журнал системных событий и аудита</h3>
               <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '0.85rem' }}>
                 Фиксация всех ключевых действий: регистрации, логины, операции с финансами и администрирование
               </p>
@@ -933,7 +992,7 @@ function Admin({ lang }) {
                 fontSize: '0.85rem'
               }}
             >
-              🗑️ {t.btnClearLogs}
+              {t.btnClearLogs}
             </button>
           </div>
 

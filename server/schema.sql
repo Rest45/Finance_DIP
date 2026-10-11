@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     avatar TEXT DEFAULT 'https://cdn-icons-png.flaticon.com/512/847/847969.png',
-    role VARCHAR(50) DEFAULT 'user',
+    role VARCHAR(50) DEFAULT 'user' CHECK (role IN ('user', 'admin')),
     is_blocked BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -72,3 +72,16 @@ ON CONFLICT (id) DO NOTHING;
 
 -- Synchronize sequence after manual ID inserts
 SELECT setval('categories_id_seq', (SELECT MAX(id) FROM categories));
+
+-- ===================================================
+-- Initial Admin User (admin@finance.app / admin12345)
+-- ===================================================
+INSERT INTO users (name, email, password, role, is_blocked)
+VALUES (
+    'Administrator',
+    'admin@finance.app',
+    '$2b$10$wN1dYcQGq6wV4iR5Lq/f5e3T.c9vH1M4K2J0G7bE6Q2V8u7h5e2d6',
+    'admin',
+    false
+)
+ON CONFLICT (email) DO UPDATE SET role = 'admin';

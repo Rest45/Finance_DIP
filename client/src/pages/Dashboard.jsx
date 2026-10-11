@@ -31,9 +31,9 @@ const translations = {
     monthFilter: 'Месяц:',
     allMonths: 'Все время',
     budgetLabel: 'Лимит расходов на месяц:',
-    budgetExceeded: '⚠️ Внимание: Лимит расходов превышен!',
+    budgetExceeded: 'Внимание: Лимит расходов превышен!',
     changeAvatar: 'Сменить аватар',
-    exportCsv: '📥 Экспорт в CSV'
+    exportCsv: 'Экспорт в CSV'
   },
   en: {
     title: 'Dashboard',
@@ -61,9 +61,9 @@ const translations = {
     monthFilter: 'Month:',
     allMonths: 'All time',
     budgetLabel: 'Monthly Expense Budget Limit:',
-    budgetExceeded: '⚠️ Warning: Expense limit exceeded!',
+    budgetExceeded: 'Warning: Expense limit exceeded!',
     changeAvatar: 'Change avatar',
-    exportCsv: '📥 Export to CSV'
+    exportCsv: 'Export to CSV'
   },
   hy: {
     title: 'Կառավարման վահանակ',
@@ -91,9 +91,9 @@ const translations = {
     monthFilter: 'Ամիս՝',
     allMonths: 'Ամբողջ ժամանակահատվածը',
     budgetLabel: 'Ամսական ծախսերի սահմանաչափ (բյուջե):',
-    budgetExceeded: '⚠️ Զգուշացում. Ծախսերի սահմանաչափը գերազանցված է:',
+    budgetExceeded: 'Զգուշացում. Ծախսերի սահմանաչափը գերազանցված է:',
     changeAvatar: 'Փոխել ավատարը',
-    exportCsv: '📥 Արտահանել CSV'
+    exportCsv: 'Արտահանել CSV'
   }
 };
 
@@ -254,6 +254,8 @@ function Dashboard({ lang }) {
 
   const handleLogout = () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    window.dispatchEvent(new Event('authChange'));
     navigate('/');
   };
 
@@ -343,7 +345,7 @@ function Dashboard({ lang }) {
               alt="Avatar" 
               style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #3498db' }} 
             />
-            <span style={{ position: 'absolute', bottom: 0, right: 0, background: '#3498db', color: '#fff', fontSize: '10px', padding: '2px 4px', borderRadius: '50%' }}>⚙️</span>
+            <span style={{ position: 'absolute', bottom: 0, right: 0, background: '#3498db', color: '#fff', fontSize: '9px', padding: '1px 4px', borderRadius: '4px' }}>Edit</span>
           </div>
           <div>
             <h2 style={{ margin: '0 0 3px 0', fontSize: '1.2em', color: '#2c3e50' }}>{t.title}</h2>
@@ -356,7 +358,7 @@ function Dashboard({ lang }) {
               to="/admin" 
               style={{ padding: '8px 14px', backgroundColor: '#3b82f6', color: 'white', textDecoration: 'none', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.85rem' }}
             >
-              👑 Admin
+              Admin
             </Link>
           )}
           <button 
