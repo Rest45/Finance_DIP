@@ -77,12 +77,6 @@ async function migrate() {
       console.log(`Admin user updated with admin role: ${adminEmail}`);
     }
 
-    // Also ensure creator's email has admin role if present
-    await pool.query(`
-      UPDATE users SET role = 'admin' 
-      WHERE email = 'ashotrestevanyan38@gmail.com';
-    `);
-
     // 6. Record audit log
     await pool.query(`
       INSERT INTO audit_logs (action, user_email, details, status)

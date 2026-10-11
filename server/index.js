@@ -46,12 +46,8 @@ app.post('/users', async (req, res) => {
       return res.status(400).json({ error: 'Пользователь с таким email уже существует' });
     }
 
-    // Роль: по умолчанию 'user', 'admin' только для первого пользователя или создателя
-    const countRes = await pool.query('SELECT COUNT(*)::int AS count FROM users');
-    const isFirstUser = countRes.rows[0].count === 0;
-    const role = (isFirstUser || email.toLowerCase() === 'ashotrestevanyan38@gmail.com') 
-      ? 'admin' 
-      : 'user';
+    // При регистрации все новые пользователи гарантированно получают роль 'user'
+    const role = 'user';
 
     // Хэшируем пароль (соль = 10 раундов)
     const salt = await bcrypt.genSalt(10);
@@ -62,7 +58,7 @@ app.post('/users', async (req, res) => {
       [name, email, hashedPassword, role]
     );
     
-    await logAction('USER_REGISTER', email, `Зарегистрирован новый пользователь: ${name} (роль: ${role})`, 'SUCCESS', req.ip);
+    await logAction('USER_REGISTER', email, `Зарегистрирован новый пользователь: ${name} (роль: user)`, 'SUCCESS', req.ip);
     res.json(newUser.rows[0]);
   } catch (err) {
     console.error(err.message);
