@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { API_URL } from '../config';
 
 const translations = {
   ru: {
@@ -156,8 +157,8 @@ function Dashboard({ lang }) {
     try {
       setLoading(true);
       const [transRes, catRes] = await Promise.all([
-        axios.get(`http://localhost:5000/transactions/${user.id}`),
-        axios.get('http://localhost:5000/categories')
+        axios.get(`${API_URL}/transactions/${user.id}`),
+        axios.get(`${API_URL}/categories`)
       ]);
       
       setTransactions(transRes.data);
@@ -205,7 +206,7 @@ function Dashboard({ lang }) {
 
   const changeAvatar = async (newAvatarUrl) => {
     try {
-      const res = await axios.put(`http://localhost:5000/users/${user.id}/avatar`, { avatar: newAvatarUrl });
+      const res = await axios.put(`${API_URL}/users/${user.id}/avatar`, { avatar: newAvatarUrl });
       setUser(res.data);
       localStorage.setItem('user', JSON.stringify(res.data));
       setShowAvatarPicker(false);
@@ -222,7 +223,7 @@ function Dashboard({ lang }) {
     }
 
     try {
-      await axios.post('http://localhost:5000/transactions', {
+      await axios.post(`${API_URL}/transactions`, {
         user_id: user.id,
         category_id: categoryId || null,
         type,
@@ -244,7 +245,7 @@ function Dashboard({ lang }) {
 
   const deleteTransaction = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/transactions/${id}`);
+      await axios.delete(`${API_URL}/transactions/${id}`);
       fetchData();
     } catch (error) {
       console.error(error);

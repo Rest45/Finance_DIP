@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import { API_URL } from '../config';
 
 const translations = {
   ru: { title: 'Регистрация', name: 'Имя', email: 'Email', password: 'Пароль', registerBtn: 'Зарегистрироваться', haveAccount: 'Уже есть аккаунт?', loginLink: 'Войти' },
@@ -20,7 +21,7 @@ function Register({ lang }) {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/users', { name, email, password });
+      await axios.post(`${API_URL}/users`, { name, email, password });
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.error || 'Ошибка регистрации');

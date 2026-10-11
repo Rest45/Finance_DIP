@@ -1,4 +1,4 @@
-# 💰 Finance DIP — Personal Finance Management Web Application
+#  Finance DIP — Personal Finance Management Web Application
 
 <p align="center">
   <img src="client/src/assets/hero.png" alt="Finance DIP Banner" width="400" />
@@ -211,7 +211,12 @@ psql -U postgres -d finance_db -f server/schema.sql
    ```bash
    npm install
    ```
-3. Start the Vite development server:
+3. Create your `.env` configuration file from the template:
+   ```bash
+   cp .env.example .env
+   ```
+   *(Ensure `VITE_API_URL=http://localhost:5000` is set for local development)*
+4. Start the Vite development server:
    ```bash
    npm run dev
    ```

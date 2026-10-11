@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import { API_URL } from '../config';
 
 const translations = {
   ru: { title: 'Вход в систему', email: 'Email', password: 'Пароль', loginBtn: 'Войти', noAccount: 'Нет аккаунта?', registerLink: 'Зарегистрироваться' },
@@ -19,7 +20,7 @@ function Login({ lang }) {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/login', { email, password });
+      const response = await axios.post(`${API_URL}/login`, { email, password });
       localStorage.setItem('user', JSON.stringify(response.data.user));
       navigate('/dashboard');
     } catch (err) {
