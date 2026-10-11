@@ -505,9 +505,6 @@ app.listen(PORT, () => {
   
   pool.query('SELECT current_database()', async (err, res) => {
     if (!err && res.rows[0]) {
-<<<<<<< HEAD
-      console.log('Подключено к базе данных:', res.rows[0].current_database);
-=======
       console.log('💡 Подключено к базе данных:', res.rows[0].current_database);
 
       // Автоматическая проверка и обновление схемы БД (миграция при старте)
@@ -538,7 +535,6 @@ app.listen(PORT, () => {
       } catch (migrationErr) {
         console.error(' Ошибка автоматической миграции структуры БД:', migrationErr.message);
       }
->>>>>>> b8bcf4715a24df12e2069fd462e292994a39c655
     }
   });
 });
