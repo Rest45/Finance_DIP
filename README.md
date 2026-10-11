@@ -25,46 +25,46 @@
 
 ---
 
-## ✨ Key Features
+##  Key Features
 
-- 🌐 **Multilingual Interface (3 Languages):**
+-  **Multilingual Interface (3 Languages):**
   - Armenian (Հայերեն)
   - Russian (Русский)
   - English (English)
   - Seamless instant language switching with persistent user preferences stored in `localStorage`.
 
-- 💱 **Multi-Currency Support:**
+-  **Multi-Currency Support:**
   - Full support for **AMD (֏)**, **USD ($)**, **EUR (€)**, and **RUB (₽)**.
   - Independent current balance calculation for each currency.
 
-- 📊 **Interactive Visual Analytics:**
+-  **Interactive Visual Analytics:**
   - Expense breakdown by category using interactive **Recharts** pie charts.
   - Dynamic currency filter for analytics.
 
-- 🎯 **Budget Limits & Alerts:**
+-  **Budget Limits & Alerts:**
   - Configurable monthly expense spending limit.
   - Automated visual warning badge (⚠️) when monthly expenses exceed the defined budget.
 
-- 🔎 **Search and Filtering:**
+-  **Search and Filtering:**
   - Real-time search by transaction description.
   - Filter transactions by type (All, Income, Expense).
   - Filter by calendar month or view all-time history.
 
-- 📥 **CSV Export:**
+-  **CSV Export:**
   - Export filtered transaction history to `.csv`.
   - Encoded with **UTF-8 BOM** to guarantee correct rendering of Armenian and Cyrillic characters in Microsoft Excel.
 
-- 🔐 **Secure Authentication:**
+-  **Secure Authentication:**
   - User registration and login flow.
   - Password hashing with **bcrypt** (10 salt rounds).
   - Secure **JSON Web Token (JWT)** issuance and verification with a 24-hour expiration window.
 
-- 👤 **Customizable User Profile:**
+-  **Customizable User Profile:**
   - Select and update user avatars from an avatar collection.
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 ### Frontend (Client)
 - **React 19** — Component-based UI library
@@ -88,7 +88,7 @@
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```text
 diploma-app/
@@ -121,7 +121,7 @@ diploma-app/
 
 ---
 
-## 🗄️ Database Schema
+##  Database Schema
 
 The database consists of three relational tables:
 
@@ -153,7 +153,7 @@ The database consists of three relational tables:
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 - **Node.js** (v18 or higher)
@@ -219,7 +219,7 @@ psql -U postgres -d finance_db -f server/schema.sql
 
 ---
 
-## 📡 REST API Reference
+##  REST API Reference
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
@@ -234,7 +234,7 @@ psql -U postgres -d finance_db -f server/schema.sql
 
 ---
 
-## 📦 Production Deployment
+##  Production Deployment
 
 The Express server is configured to serve the production-built React frontend:
 
@@ -252,7 +252,7 @@ The full application (frontend UI + backend REST API) will run on a single port 
 
 ---
 
-## 👥 Author
+##  Author
 
 - **Ashot Restevanyan** — *Diploma / Graduation Project*
 - GitHub: [@Rest45](https://github.com/Rest45)
