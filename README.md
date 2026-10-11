@@ -236,6 +236,16 @@ psql -U postgres -d finance_db -f server/schema.sql
 | `GET` | `/transactions/:user_id` | Fetches all transactions for the specified user |
 | `POST` | `/transactions` | Creates a new transaction (income / expense) |
 | `DELETE` | `/transactions/:id` | Deletes a transaction by its ID |
+| `GET` | `/admin/stats` | Platform metrics, currency turnover & category analytics |
+| `GET` | `/admin/users` | List all users with transaction metrics & status |
+| `PUT` | `/admin/users/:id/block` | Toggle user account block/unblock status |
+| `PUT` | `/admin/users/:id/role` | Change user role (`admin` / `user`) |
+| `DELETE` | `/admin/users/:id` | Permanently delete user account and transactions |
+| `POST` | `/admin/categories` | Create a new global income or expense category |
+| `PUT` | `/admin/categories/:id` | Update an existing category |
+| `DELETE` | `/admin/categories/:id` | Delete a global category |
+| `GET` | `/admin/logs` | Fetch system audit, security, and activity logs |
+| `DELETE` | `/admin/logs` | Clear audit logs |
 
 ---
 

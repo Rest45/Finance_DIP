@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { API_URL } from '../config';
 
@@ -350,12 +350,22 @@ function Dashboard({ lang }) {
             <span style={{ fontSize: '0.85em', color: '#7f8c8d' }}>{user.email}</span>
           </div>
         </div>
-        <button 
-          onClick={handleLogout}
-          style={{ padding: '8px 16px', backgroundColor: '#e74c3c', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '6px', fontWeight: 'bold' }}
-        >
-          {t.logout}
-        </button>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {user.role === 'admin' && (
+            <Link 
+              to="/admin" 
+              style={{ padding: '8px 14px', backgroundColor: '#3b82f6', color: 'white', textDecoration: 'none', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.85rem' }}
+            >
+              👑 Admin
+            </Link>
+          )}
+          <button 
+            onClick={handleLogout}
+            style={{ padding: '8px 16px', backgroundColor: '#e74c3c', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '6px', fontWeight: 'bold' }}
+          >
+            {t.logout}
+          </button>
+        </div>
       </div>
 
       {showAvatarPicker && (
