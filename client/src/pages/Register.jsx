@@ -4,9 +4,36 @@ import { useNavigate, Link } from 'react-router-dom';
 import { API_URL } from '../config';
 
 const translations = {
-  ru: { title: 'Регистрация', name: 'Имя', email: 'Email', password: 'Пароль', registerBtn: 'Зарегистрироваться', haveAccount: 'Уже есть аккаунт?', loginLink: 'Войти' },
-  en: { title: 'Register', name: 'Name', email: 'Email', password: 'Password', registerBtn: 'Register', haveAccount: 'Already have an account?', loginLink: 'Login' },
-  hy: { title: 'Գրանցում', name: 'Անուն', email: 'Էլ. հասցե', password: 'Գաղտնաբառ', registerBtn: 'Գրանցվել', haveAccount: 'Արդե՞ն ունեք հաշիվ:', loginLink: 'Մուտք' }
+  ru: {
+    title: 'Регистрация аккаунта',
+    subtitle: 'Создайте профиль и начните вести учет финансов',
+    name: 'Ваше имя',
+    email: 'Электронная почта',
+    password: 'Пароль',
+    registerBtn: 'Создать аккаунт',
+    haveAccount: 'Уже есть аккаунт?',
+    loginLink: 'Войти'
+  },
+  en: {
+    title: 'Create an Account',
+    subtitle: 'Sign up to start tracking your income and expenses',
+    name: 'Full Name',
+    email: 'Email address',
+    password: 'Password',
+    registerBtn: 'Create Account',
+    haveAccount: 'Already have an account?',
+    loginLink: 'Sign In'
+  },
+  hy: {
+    title: 'Գրանցում համակարգում',
+    subtitle: 'Ստեղծեք հաշիվ և կառավարեք Ձեր եկամուտներն ու ծախսերը',
+    name: 'Ամբողջական անուն',
+    email: 'Էլ. հասցե',
+    password: 'Գաղտնաբառ',
+    registerBtn: 'Գրանցվել',
+    haveAccount: 'Արդե՞ն ունեք հաշիվ:',
+    loginLink: 'Մուտք գործել'
+  }
 };
 
 function Register({ lang }) {
@@ -14,6 +41,7 @@ function Register({ lang }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const t = translations[lang] || translations.hy;
@@ -21,50 +49,138 @@ function Register({ lang }) {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
+      setLoading(true);
+      setError('');
       await axios.post(`${API_URL}/users`, { name, email, password });
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.error || 'Ошибка регистрации');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', fontFamily: 'Arial, sans-serif', padding: '20px', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#fff' }}>
-      <h2 style={{ margin: '0 0 20px 0' }}>{t.title}</h2>
+    <div style={{
+      minHeight: 'calc(100vh - 68px)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '40px 20px',
+      background: 'radial-gradient(ellipse at top, #f1f5f9 0%, #f8fafc 100%)'
+    }}>
+      <div className="fintech-card" style={{
+        width: '100%',
+        maxWidth: '440px',
+        padding: '40px 36px',
+        borderRadius: '24px',
+        backgroundColor: '#ffffff'
+      }}>
+        {/* Card Header */}
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            borderRadius: '14px',
+            background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 16px',
+            boxShadow: '0 8px 18px rgba(5, 150, 105, 0.35)'
+          }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="8.5" cy="7" r="4" />
+              <line x1="20" y1="8" x2="20" y2="14" />
+              <line x1="23" y1="11" x2="17" y2="11" />
+            </svg>
+          </div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '8px' }}>
+            {t.title}
+          </h2>
+          <p style={{ fontSize: '0.9rem', color: '#64748b' }}>
+            {t.subtitle}
+          </p>
+        </div>
 
-      <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <input 
-          type="text" 
-          placeholder={t.name} 
-          value={name} 
-          onChange={(e) => setName(e.target.value)} 
-          required 
-          style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
-        />
-        <input 
-          type="email" 
-          placeholder={t.email} 
-          value={email} 
-          onChange={(e) => setEmail(e.target.value)} 
-          required 
-          style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
-        />
-        <input 
-          type="password" 
-          placeholder={t.password} 
-          value={password} 
-          onChange={(e) => setPassword(e.target.value)} 
-          required 
-          style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
-        />
-        <button type="submit" style={{ padding: '10px', backgroundColor: '#2980b9', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px', fontWeight: 'bold' }}>
-          {t.registerBtn}
-        </button>
-      </form>
-      {error && <p style={{ color: 'red', marginTop: '10px', textAlign: 'center' }}>{error}</p>}
-      <p style={{ marginTop: '15px', textAlign: 'center', fontSize: '0.9em' }}>
-        {t.haveAccount} <Link to="/">{t.loginLink}</Link>
-      </p>
+        {/* Register Form */}
+        <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>
+              {t.name}
+            </label>
+            <input 
+              type="text" 
+              placeholder="John Doe"
+              value={name} 
+              onChange={(e) => setName(e.target.value)} 
+              required 
+              className="fintech-input"
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>
+              {t.email}
+            </label>
+            <input 
+              type="email" 
+              placeholder="name@example.com"
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              required 
+              className="fintech-input"
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>
+              {t.password}
+            </label>
+            <input 
+              type="password" 
+              placeholder="••••••••"
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              required 
+              className="fintech-input"
+            />
+          </div>
+
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="fintech-btn-primary"
+            style={{ width: '100%', height: '48px', marginTop: '6px', fontSize: '0.95rem' }}
+          >
+            {loading ? '...' : t.registerBtn}
+          </button>
+        </form>
+
+        {error && (
+          <div style={{
+            marginTop: '20px',
+            padding: '12px 16px',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecdd3',
+            borderRadius: '10px',
+            color: '#dc2626',
+            fontSize: '0.85rem',
+            textAlign: 'center',
+            fontWeight: 600
+          }}>
+            {error}
+          </div>
+        )}
+
+        <div style={{ marginTop: '28px', textAlign: 'center', fontSize: '0.9rem', color: '#64748b' }}>
+          {t.haveAccount}{' '}
+          <Link to="/" style={{ color: '#4f46e5', fontWeight: 700, textDecoration: 'none' }}>
+            {t.loginLink}
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

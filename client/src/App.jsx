@@ -1,15 +1,157 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Admin from './pages/Admin';
 
 const navTranslations = {
-  ru: { register: 'Регистрация', login: 'Вход', finances: 'Мои финансы', admin: 'Админ-панель' },
-  en: { register: 'Register', login: 'Login', finances: 'My Finances', admin: 'Admin Panel' },
-  hy: { register: 'Գրանցում', login: 'Մուտք', finances: 'Իմ ֆինանսները', admin: 'Ադմին պանել' }
+  ru: { register: 'Регистрация', login: 'Вход', finances: 'Мои финансы', appName: 'FinanceHub' },
+  en: { register: 'Register', login: 'Login', finances: 'My Finances', appName: 'FinanceHub' },
+  hy: { register: 'Գրանցում', login: 'Մուտք', finances: 'Իմ ֆինանսները', appName: 'FinanceHub' }
 };
+
+function NavigationBar({ lang, onLangChange, currentUser }) {
+  const t = navTranslations[lang] || navTranslations.hy;
+  const location = useLocation();
+
+  const isActive = (path) => location.pathname === path;
+
+  return (
+    <nav style={{
+      position: 'sticky',
+      top: 0,
+      zIndex: 100,
+      backdropFilter: 'blur(16px)',
+      backgroundColor: 'rgba(15, 23, 42, 0.92)',
+      borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+      padding: '0 28px',
+      height: '68px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.2)'
+    }}>
+      {/* Brand Logo */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+        <Link to={currentUser ? "/dashboard" : "/"} style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+          <div style={{
+            width: '38px',
+            height: '38px',
+            borderRadius: '10px',
+            background: 'linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 12px rgba(79, 70, 229, 0.4)'
+          }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="5" width="20" height="14" rx="2" />
+              <line x1="2" y1="10" x2="22" y2="10" />
+            </svg>
+          </div>
+          <div>
+            <span style={{ fontSize: '1.2rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em' }}>
+              Finance<span style={{ color: '#818cf8' }}>Hub</span>
+            </span>
+          </div>
+        </Link>
+
+        {/* Navigation Links */}
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {currentUser ? (
+            <Link 
+              to="/dashboard" 
+              style={{
+                color: isActive('/dashboard') ? '#ffffff' : '#94a3b8',
+                backgroundColor: isActive('/dashboard') ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                textDecoration: 'none',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              {t.finances}
+            </Link>
+          ) : (
+            <>
+              <Link 
+                to="/" 
+                style={{
+                  color: isActive('/') ? '#ffffff' : '#94a3b8',
+                  backgroundColor: isActive('/') ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                {t.login}
+              </Link>
+              <Link 
+                to="/register" 
+                style={{
+                  color: isActive('/register') ? '#ffffff' : '#94a3b8',
+                  backgroundColor: isActive('/register') ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                {t.register}
+              </Link>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Right Controls: User info & Language Switcher */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        {currentUser && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <img 
+              src={currentUser.avatar || 'https://cdn-icons-png.flaticon.com/512/847/847969.png'} 
+              alt="Profile" 
+              style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #818cf8' }}
+            />
+            <span style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 500 }}>
+              {currentUser.email}
+            </span>
+          </div>
+        )}
+
+        {/* Language selector pill */}
+        <select 
+          value={lang} 
+          onChange={(e) => onLangChange(e.target.value)} 
+          style={{
+            padding: '7px 12px',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            backgroundColor: '#1e293b',
+            color: '#f8fafc',
+            border: '1px solid rgba(255, 255, 255, 0.15)',
+            fontSize: '0.85rem',
+            fontWeight: 500,
+            outline: 'none',
+            transition: 'border-color 0.2s ease'
+          }}
+        >
+          <option value="hy">Հայերեն</option>
+          <option value="ru">Русский</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+    </nav>
+  );
+}
 
 function App() {
   const [lang, setLang] = useState(() => localStorage.getItem('lang') || 'hy');
@@ -43,91 +185,35 @@ function App() {
     localStorage.setItem('lang', newLang);
   };
 
-  const t = navTranslations[lang] || navTranslations.hy;
   const isAdmin = currentUser && currentUser.role === 'admin';
 
   return (
     <Router>
-      <div>
-        {/* Верхняя панель со ссылками меню и селектором языка */}
-        <nav style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '14px 30px',
-          backgroundColor: '#1e293b',
-          color: 'white',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-            {!currentUser && (
-              <>
-                <Link to="/register" style={{ color: 'white', textDecoration: 'none', fontWeight: 'bold' }}>{t.register}</Link>
-                <Link to="/" style={{ color: 'white', textDecoration: 'none', fontWeight: 'bold' }}>{t.login}</Link>
-              </>
-            )}
-            <Link to="/dashboard" style={{ color: 'white', textDecoration: 'none', fontWeight: 'bold' }}>{t.finances}</Link>
-            
-            {/* Панель администратора видна ТОЛЬКО для роли admin */}
-            {isAdmin && (
-              <Link 
-                to="/admin" 
-                style={{ 
-                  color: '#38bdf8', 
-                  textDecoration: 'none', 
-                  fontWeight: 'bold',
-                  padding: '4px 10px',
-                  borderRadius: '6px',
-                  background: 'rgba(56, 189, 248, 0.1)',
-                  border: '1px solid rgba(56, 189, 248, 0.3)'
-                }}
-              >
-                {t.admin}
-              </Link>
-            )}
-          </div>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <NavigationBar 
+          lang={lang} 
+          onLangChange={handleLangChange} 
+          currentUser={currentUser} 
+        />
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            {currentUser && (
-              <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
-                {currentUser.email} {isAdmin ? '(Admin)' : '(User)'}
-              </span>
-            )}
-            <select 
-              value={lang} 
-              onChange={(e) => handleLangChange(e.target.value)} 
-              style={{
-                padding: '6px 10px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                background: '#334155',
-                color: '#fff',
-                border: '1px solid #475569'
-              }}
-            >
-              <option value="hy">Հայերեն</option>
-              <option value="ru">Русский</option>
-              <option value="en">English</option>
-            </select>
-          </div>
-        </nav>
-
-        <Routes>
-          <Route path="/" element={<Login lang={lang} />} />
-          <Route path="/register" element={<Register lang={lang} />} />
-          <Route path="/dashboard" element={<Dashboard lang={lang} />} />
-          {/* Маршрут админ-панели доступен ТОЛЬКО администраторам */}
-          <Route 
-            path="/admin" 
-            element={
-              isAdmin ? (
-                <Admin lang={lang} />
-              ) : (
-                <Navigate to={currentUser ? "/dashboard" : "/"} replace />
-              )
-            } 
-          />
-        </Routes>
+        <main style={{ flex: 1 }}>
+          <Routes>
+            <Route path="/" element={<Login lang={lang} />} />
+            <Route path="/register" element={<Register lang={lang} />} />
+            <Route path="/dashboard" element={<Dashboard lang={lang} />} />
+            {/* Админ-панель доступна по прямому URL только для роли admin */}
+            <Route 
+              path="/admin" 
+              element={
+                isAdmin ? (
+                  <Admin lang={lang} />
+                ) : (
+                  <Navigate to={currentUser ? "/dashboard" : "/"} replace />
+                )
+              } 
+            />
+          </Routes>
+        </main>
       </div>
     </Router>
   );
