@@ -503,9 +503,42 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Сервер запущен на http://localhost:${PORT}`);
   
-  pool.query('SELECT current_database()', (err, res) => {
+  pool.query('SELECT current_database()', async (err, res) => {
     if (!err && res.rows[0]) {
+<<<<<<< HEAD
       console.log('Подключено к базе данных:', res.rows[0].current_database);
+=======
+      console.log('💡 Подключено к базе данных:', res.rows[0].current_database);
+
+      // Автоматическая проверка и обновление схемы БД (миграция при старте)
+      try {
+        await pool.query(`
+          ALTER TABLE users 
+          ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'user',
+          ADD COLUMN IF NOT EXISTS is_blocked BOOLEAN DEFAULT false;
+
+          CREATE TABLE IF NOT EXISTS audit_logs (
+            id SERIAL PRIMARY KEY,
+            action VARCHAR(100) NOT NULL,
+            user_email VARCHAR(255),
+            details TEXT,
+            ip_address VARCHAR(100),
+            status VARCHAR(20) DEFAULT 'SUCCESS',
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+          );
+
+          ALTER TABLE audit_logs 
+          ADD COLUMN IF NOT EXISTS user_email VARCHAR(255),
+          ADD COLUMN IF NOT EXISTS action VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
+          ADD COLUMN IF NOT EXISTS details TEXT,
+          ADD COLUMN IF NOT EXISTS ip_address VARCHAR(100),
+          ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'SUCCESS';
+        `);
+        console.log(' Структура базы данных проверена (users.role, audit_logs)');
+      } catch (migrationErr) {
+        console.error(' Ошибка автоматической миграции структуры БД:', migrationErr.message);
+      }
+>>>>>>> b8bcf4715a24df12e2069fd462e292994a39c655
     }
   });
 });

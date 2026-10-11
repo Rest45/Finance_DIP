@@ -42,8 +42,19 @@ async function migrate() {
         status VARCHAR(20) DEFAULT 'SUCCESS',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
+
+      ALTER TABLE audit_logs 
+      ADD COLUMN IF NOT EXISTS user_email VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS action VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
+      ADD COLUMN IF NOT EXISTS details TEXT,
+      ADD COLUMN IF NOT EXISTS ip_address VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'SUCCESS';
     `);
+<<<<<<< HEAD
     console.log('audit_logs table verified.');
+=======
+    console.log('✓ audit_logs table created & updated with user_email');
+>>>>>>> b8bcf4715a24df12e2069fd462e292994a39c655
 
     // 5. Seed / Update 1 designated Admin user
     const adminEmail = 'admin@finance.app';
