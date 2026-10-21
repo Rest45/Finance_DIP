@@ -68,14 +68,15 @@ function Login({ lang }) {
       alignItems: 'center',
       justifyContent: 'center',
       padding: '40px 20px',
-      background: 'radial-gradient(ellipse at top, #f1f5f9 0%, #f8fafc 100%)'
+      background: 'radial-gradient(ellipse at top, var(--bg-card-subtle) 0%, var(--bg-main) 100%)'
     }}>
       <div className="fintech-card" style={{
         width: '100%',
         maxWidth: '440px',
         padding: '40px 36px',
         borderRadius: '24px',
-        backgroundColor: '#ffffff'
+        backgroundColor: 'var(--bg-card)',
+        border: '1px solid var(--border)'
       }}>
         {/* Card Header */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
@@ -96,10 +97,10 @@ function Login({ lang }) {
               <line x1="15" y1="12" x2="3" y2="12" />
             </svg>
           </div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '8px' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
             {t.title}
           </h2>
-          <p style={{ fontSize: '0.9rem', color: '#64748b' }}>
+          <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
             {t.subtitle}
           </p>
         </div>
@@ -107,7 +108,7 @@ function Login({ lang }) {
         {/* Login Form */}
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
               {t.email}
             </label>
             <input 
@@ -121,7 +122,7 @@ function Login({ lang }) {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
               {t.password}
             </label>
             <input 
@@ -148,10 +149,10 @@ function Login({ lang }) {
           <div style={{
             marginTop: '20px',
             padding: '12px 16px',
-            backgroundColor: '#fef2f2',
-            border: '1px solid #fecdd3',
+            backgroundColor: 'var(--expense-bg)',
+            border: '1px solid var(--expense-border)',
             borderRadius: '10px',
-            color: '#dc2626',
+            color: 'var(--expense)',
             fontSize: '0.85rem',
             textAlign: 'center',
             fontWeight: 600
@@ -160,9 +161,9 @@ function Login({ lang }) {
           </div>
         )}
 
-        <div style={{ marginTop: '28px', textAlign: 'center', fontSize: '0.9rem', color: '#64748b' }}>
+        <div style={{ marginTop: '28px', textAlign: 'center', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
           {t.noAccount}{' '}
-          <Link to="/register" style={{ color: '#4f46e5', fontWeight: 700, textDecoration: 'none' }}>
+          <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'none' }}>
             {t.registerLink}
           </Link>
         </div>

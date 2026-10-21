@@ -77,10 +77,50 @@ async function migrate() {
       console.log(`Admin user updated with admin role: ${adminEmail}`);
     }
 
-    // 6. Record audit log
+    // 6. Create tables for Savings Goals, Subscriptions, and Category Budgets
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS savings_goals (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        target_amount NUMERIC(14, 2) NOT NULL,
+        current_amount NUMERIC(14, 2) DEFAULT 0,
+        currency VARCHAR(10) DEFAULT 'AMD',
+        deadline DATE,
+        color VARCHAR(30) DEFAULT '#4f46e5',
+        category_icon VARCHAR(50) DEFAULT 'piggy-bank',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS subscriptions (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        name VARCHAR(255) NOT NULL,
+        amount NUMERIC(14, 2) NOT NULL,
+        currency VARCHAR(10) DEFAULT 'AMD',
+        billing_cycle VARCHAR(20) DEFAULT 'monthly',
+        next_payment_date DATE NOT NULL,
+        category VARCHAR(100) DEFAULT 'Подписки',
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS category_budgets (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        category_id INTEGER REFERENCES categories(id) ON DELETE CASCADE,
+        monthly_limit NUMERIC(14, 2) NOT NULL,
+        currency VARCHAR(10) DEFAULT 'AMD',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT unique_user_cat_currency UNIQUE (user_id, category_id, currency)
+      );
+    `);
+    console.log('✓ Tables savings_goals, subscriptions, and category_budgets verified.');
+
+    // 7. Record audit log
     await pool.query(`
       INSERT INTO audit_logs (action, user_email, details, status)
-      VALUES ('MIGRATION_ROLES', $1, 'Users role migration applied and admin user seeded', 'SUCCESS');
+      VALUES ('MIGRATION_V2', $1, 'Savings goals, subscriptions, and category budgets migrated', 'SUCCESS');
     `, [adminEmail]);
 
     console.log('\n==========================================');

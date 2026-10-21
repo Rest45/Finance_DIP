@@ -67,14 +67,15 @@ function Register({ lang }) {
       alignItems: 'center',
       justifyContent: 'center',
       padding: '40px 20px',
-      background: 'radial-gradient(ellipse at top, #f1f5f9 0%, #f8fafc 100%)'
+      background: 'radial-gradient(ellipse at top, var(--bg-card-subtle) 0%, var(--bg-main) 100%)'
     }}>
       <div className="fintech-card" style={{
         width: '100%',
         maxWidth: '440px',
         padding: '40px 36px',
         borderRadius: '24px',
-        backgroundColor: '#ffffff'
+        backgroundColor: 'var(--bg-card)',
+        border: '1px solid var(--border)'
       }}>
         {/* Card Header */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
@@ -96,10 +97,10 @@ function Register({ lang }) {
               <line x1="23" y1="11" x2="17" y2="11" />
             </svg>
           </div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '8px' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
             {t.title}
           </h2>
-          <p style={{ fontSize: '0.9rem', color: '#64748b' }}>
+          <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
             {t.subtitle}
           </p>
         </div>
@@ -107,7 +108,7 @@ function Register({ lang }) {
         {/* Register Form */}
         <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
               {t.name}
             </label>
             <input 
@@ -121,7 +122,7 @@ function Register({ lang }) {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
               {t.email}
             </label>
             <input 
@@ -135,7 +136,7 @@ function Register({ lang }) {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
               {t.password}
             </label>
             <input 
@@ -162,10 +163,10 @@ function Register({ lang }) {
           <div style={{
             marginTop: '20px',
             padding: '12px 16px',
-            backgroundColor: '#fef2f2',
-            border: '1px solid #fecdd3',
+            backgroundColor: 'var(--expense-bg)',
+            border: '1px solid var(--expense-border)',
             borderRadius: '10px',
-            color: '#dc2626',
+            color: 'var(--expense)',
             fontSize: '0.85rem',
             textAlign: 'center',
             fontWeight: 600
@@ -174,9 +175,9 @@ function Register({ lang }) {
           </div>
         )}
 
-        <div style={{ marginTop: '28px', textAlign: 'center', fontSize: '0.9rem', color: '#64748b' }}>
+        <div style={{ marginTop: '28px', textAlign: 'center', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
           {t.haveAccount}{' '}
-          <Link to="/" style={{ color: '#4f46e5', fontWeight: 700, textDecoration: 'none' }}>
+          <Link to="/" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'none' }}>
             {t.loginLink}
           </Link>
         </div>

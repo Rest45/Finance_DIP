@@ -187,6 +187,328 @@ app.delete('/transactions/:id', async (req, res) => {
 });
 
 // =========================================================
+// 9. ФИНАНСОВЫЕ ЦЕЛИ И КОПИЛКИ (SAVINGS GOALS & PIGGY BANK)
+// =========================================================
+
+// Получить все цели пользователя
+app.get('/savings-goals/:user_id', async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const goals = await pool.query(
+      'SELECT * FROM savings_goals WHERE user_id = $1 ORDER BY deadline ASC NULLS LAST, id DESC',
+      [user_id]
+    );
+    res.json(goals.rows);
+  } catch (err) {
+    console.error('Error fetching savings goals:', err.message);
+    res.status(500).json({ error: 'Ошибка сервера при получении финансовых целей' });
+  }
+});
+
+// Создать новую цель / копилку
+app.post('/savings-goals', async (req, res) => {
+  try {
+    const { user_id, title, target_amount, current_amount, currency, deadline, color, category_icon } = req.body;
+    if (!title || !target_amount || Number(target_amount) <= 0) {
+      return res.status(400).json({ error: 'Укажите название и корректную сумму цели' });
+    }
+
+    const newGoal = await pool.query(
+      `INSERT INTO savings_goals (user_id, title, target_amount, current_amount, currency, deadline, color, category_icon)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [
+        user_id,
+        title,
+        target_amount,
+        current_amount || 0,
+        currency || 'AMD',
+        deadline || null,
+        color || '#4f46e5',
+        category_icon || 'piggy-bank'
+      ]
+    );
+
+    await logAction('SAVINGS_GOAL_CREATED', `User #${user_id}`, `Создана цель: "${title}" на ${target_amount} ${currency || 'AMD'}`, 'SUCCESS', req.ip);
+    res.json(newGoal.rows[0]);
+  } catch (err) {
+    console.error('Error creating savings goal:', err.message);
+    res.status(500).json({ error: 'Ошибка сервера при создании цели' });
+  }
+});
+
+// Пополнение или списание из копилки
+app.post('/savings-goals/:id/deposit', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { amount } = req.body;
+    const depositAmount = Number(amount);
+    if (isNaN(depositAmount) || depositAmount === 0) {
+      return res.status(400).json({ error: 'Укажите корректную сумму' });
+    }
+
+    const updated = await pool.query(
+      'UPDATE savings_goals SET current_amount = GREATEST(0, current_amount + $1) WHERE id = $2 RETURNING *',
+      [depositAmount, id]
+    );
+
+    if (updated.rows.length === 0) {
+      return res.status(404).json({ error: 'Цель не найдена' });
+    }
+
+    const goal = updated.rows[0];
+    await logAction(
+      depositAmount > 0 ? 'SAVINGS_DEPOSIT' : 'SAVINGS_WITHDRAW',
+      `User #${goal.user_id}`,
+      `Изменение баланса цели "${goal.title}": ${depositAmount > 0 ? '+' : ''}${depositAmount} ${goal.currency}`,
+      'SUCCESS',
+      req.ip
+    );
+
+    res.json(goal);
+  } catch (err) {
+    console.error('Error updating savings deposit:', err.message);
+    res.status(500).json({ error: 'Ошибка сервера при пополнении копилки' });
+  }
+});
+
+// Удалить цель
+app.delete('/savings-goals/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await pool.query('DELETE FROM savings_goals WHERE id = $1 RETURNING *', [id]);
+    if (deleted.rows.length === 0) return res.status(404).json({ error: 'Цель не найдена' });
+
+    res.json({ message: 'Цель успешно удалена', goal: deleted.rows[0] });
+  } catch (err) {
+    console.error('Error deleting savings goal:', err.message);
+    res.status(500).json({ error: 'Ошибка сервера при удалении цели' });
+  }
+});
+
+// =========================================================
+// 10. РЕГУЛЯРНЫЕ ПЛАТЕЖИ И ПОДПИСКИ (SUBSCRIPTIONS TRACKER)
+// =========================================================
+
+// Получить все подписки пользователя
+app.get('/subscriptions/:user_id', async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const subs = await pool.query(
+      'SELECT * FROM subscriptions WHERE user_id = $1 ORDER BY next_payment_date ASC, id DESC',
+      [user_id]
+    );
+    res.json(subs.rows);
+  } catch (err) {
+    console.error('Error fetching subscriptions:', err.message);
+    res.status(500).json({ error: 'Ошибка сервера при получении подписок' });
+  }
+});
+
+// Добавить новую подписку
+app.post('/subscriptions', async (req, res) => {
+  try {
+    const { user_id, name, amount, currency, billing_cycle, next_payment_date, category } = req.body;
+    if (!name || !amount || Number(amount) <= 0 || !next_payment_date) {
+      return res.status(400).json({ error: 'Заполните все обязательные поля' });
+    }
+
+    const newSub = await pool.query(
+      `INSERT INTO subscriptions (user_id, name, amount, currency, billing_cycle, next_payment_date, category, is_active)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, true) RETURNING *`,
+      [
+        user_id,
+        name,
+        amount,
+        currency || 'AMD',
+        billing_cycle || 'monthly',
+        next_payment_date,
+        category || 'Подписки'
+      ]
+    );
+
+    await logAction('SUBSCRIPTION_CREATED', `User #${user_id}`, `Добавлена подписка "${name}" (${amount} ${currency || 'AMD'})`, 'SUCCESS', req.ip);
+    res.json(newSub.rows[0]);
+  } catch (err) {
+    console.error('Error adding subscription:', err.message);
+    res.status(500).json({ error: 'Ошибка сервера при создании подписки' });
+  }
+});
+
+// Переключить активность подписки
+app.put('/subscriptions/:id/toggle', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const sub = await pool.query('SELECT * FROM subscriptions WHERE id = $1', [id]);
+    if (sub.rows.length === 0) return res.status(404).json({ error: 'Подписка не найдена' });
+
+    const newStatus = !sub.rows[0].is_active;
+    const updated = await pool.query(
+      'UPDATE subscriptions SET is_active = $1 WHERE id = $2 RETURNING *',
+      [newStatus, id]
+    );
+
+    res.json(updated.rows[0]);
+  } catch (err) {
+    console.error('Error toggling subscription:', err.message);
+    res.status(500).json({ error: 'Ошибка сервера при обновлении статуса подписки' });
+  }
+});
+
+// Оплатить подписку в 1 клик (сгенерировать транзакцию расхода + перенести дату платежа)
+app.post('/subscriptions/:id/pay', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const subRes = await pool.query('SELECT * FROM subscriptions WHERE id = $1', [id]);
+    if (subRes.rows.length === 0) return res.status(404).json({ error: 'Подписка не найдена' });
+
+    const sub = subRes.rows[0];
+
+    // Находим категорию для подписок (или берем категорию 14 "Связь и интернет" / дефолтную)
+    const catQuery = await pool.query("SELECT id FROM categories WHERE name ILIKE '%подписк%' OR name ILIKE '%интернет%' LIMIT 1");
+    const categoryId = catQuery.rows.length > 0 ? catQuery.rows[0].id : null;
+
+    // Создаем расход
+    const transaction = await pool.query(
+      `INSERT INTO transactions (user_id, category_id, type, amount, description, currency, date)
+       VALUES ($1, $2, 'expense', $3, $4, $5, CURRENT_TIMESTAMP) RETURNING *`,
+      [sub.user_id, categoryId, sub.amount, `Оплата сервиса: ${sub.name}`, sub.currency]
+    );
+
+    // Рассчитываем следующую дату платежа
+    const currentDate = new Date(sub.next_payment_date);
+    if (sub.billing_cycle === 'weekly') {
+      currentDate.setDate(currentDate.getDate() + 7);
+    } else if (sub.billing_cycle === 'yearly') {
+      currentDate.setFullYear(currentDate.getFullYear() + 1);
+    } else {
+      // monthly
+      currentDate.setMonth(currentDate.getMonth() + 1);
+    }
+    const nextDateStr = currentDate.toISOString().split('T')[0];
+
+    const updatedSub = await pool.query(
+      'UPDATE subscriptions SET next_payment_date = $1 WHERE id = $2 RETURNING *',
+      [nextDateStr, id]
+    );
+
+    await logAction('SUBSCRIPTION_PAID', `User #${sub.user_id}`, `Произведена авто-оплата подписки "${sub.name}" на сумму ${sub.amount} ${sub.currency}`, 'SUCCESS', req.ip);
+
+    res.json({
+      message: 'Подписка успешно оплачена и продлена!',
+      transaction: transaction.rows[0],
+      subscription: updatedSub.rows[0]
+    });
+  } catch (err) {
+    console.error('Error paying subscription:', err.message);
+    res.status(500).json({ error: 'Ошибка сервера при оплате подписки' });
+  }
+});
+
+// Удалить подписку
+app.delete('/subscriptions/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query('DELETE FROM subscriptions WHERE id = $1', [id]);
+    res.json({ message: 'Подписка успешно удалена' });
+  } catch (err) {
+    console.error('Error deleting subscription:', err.message);
+    res.status(500).json({ error: 'Ошибка сервера при удалении подписки' });
+  }
+});
+
+// =========================================================
+// 11. КАТЕГОРИАЛЬНЫЕ БЮДЖЕТЫ (CATEGORY-SPECIFIC BUDGETS)
+// =========================================================
+
+// Получить лимиты по категориям пользователя
+app.get('/category-budgets/:user_id', async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const budgets = await pool.query(
+      `SELECT cb.*, c.name AS category_name, c.type AS category_type 
+       FROM category_budgets cb
+       JOIN categories c ON cb.category_id = c.id
+       WHERE cb.user_id = $1
+       ORDER BY cb.id ASC`,
+      [user_id]
+    );
+    res.json(budgets.rows);
+  } catch (err) {
+    console.error('Error fetching category budgets:', err.message);
+    res.status(500).json({ error: 'Ошибка при получении бюджетов' });
+  }
+});
+
+// Установить или обновить лимит категории
+app.post('/category-budgets', async (req, res) => {
+  try {
+    const { user_id, category_id, monthly_limit, currency } = req.body;
+    if (!category_id || !monthly_limit || Number(monthly_limit) <= 0) {
+      return res.status(400).json({ error: 'Укажите категорию и положительный лимит' });
+    }
+
+    const upserted = await pool.query(
+      `INSERT INTO category_budgets (user_id, category_id, monthly_limit, currency)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (user_id, category_id, currency)
+       DO UPDATE SET monthly_limit = EXCLUDED.monthly_limit
+       RETURNING *`,
+      [user_id, category_id, monthly_limit, currency || 'AMD']
+    );
+
+    res.json(upserted.rows[0]);
+  } catch (err) {
+    console.error('Error setting category budget:', err.message);
+    res.status(500).json({ error: 'Ошибка сервера при сохранении бюджета' });
+  }
+});
+
+// Удалить лимит категории
+app.delete('/category-budgets/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query('DELETE FROM category_budgets WHERE id = $1', [id]);
+    res.json({ message: 'Лимит категории удален' });
+  } catch (err) {
+    console.error('Error deleting category budget:', err.message);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// =========================================================
+// 12. КУРСЫ ВАЛЮТ И ОБЩИЙ КАПИТАЛ (FX RATES & NET WORTH)
+// =========================================================
+app.get('/exchange-rates', async (req, res) => {
+  try {
+    // Надежные базовые курсы относительно армянского драма (AMD)
+    // 1 USD ≈ 388 AMD, 1 EUR ≈ 422 AMD, 1 RUB ≈ 4.25 AMD
+    const toAmd = {
+      AMD: 1,
+      USD: 388.0,
+      EUR: 422.0,
+      RUB: 4.25
+    };
+
+    const rates = {
+      AMD: 1,
+      USD: 1 / toAmd.USD,
+      EUR: 1 / toAmd.EUR,
+      RUB: 1 / toAmd.RUB
+    };
+
+    res.json({
+      base: 'AMD',
+      toAmd,
+      rates,
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    console.error('Error providing exchange rates:', err.message);
+    res.status(500).json({ error: 'Ошибка получения курсов валют' });
+  }
+});
+
+// =========================================================
 // ADMIN AUTHENTICATION & ACCESS CONTROL MIDDLEWARE
 // =========================================================
 const authenticateAdmin = async (req, res, next) => {
