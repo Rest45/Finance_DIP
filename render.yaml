@@ -14,7 +14,7 @@ services:
   - key: PORT
     sync: false
   region: oregon
-  buildCommand: npm install && npm run migrate
+  buildCommand: npm install && npm run build
   startCommand: npm start
   autoDeployTrigger: commit
   rootDir: server/

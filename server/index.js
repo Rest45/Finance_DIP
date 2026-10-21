@@ -4,6 +4,7 @@ const pool = require('./db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
@@ -810,11 +811,28 @@ app.delete('/admin/logs', async (req, res) => {
 });
 
 // --- СБОРКА И РАЗДАЧА FRONTEND (PRODUCTION РЕЖИМ) ---
-app.use(express.static(path.join(__dirname, '../client/dist')));
+const clientDistPath = path.join(__dirname, '../client/dist');
+const indexHtmlPath = path.join(clientDistPath, 'index.html');
 
-app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
-});
+if (fs.existsSync(indexHtmlPath)) {
+  app.use(express.static(clientDistPath));
+  app.get(/.*/, (req, res) => {
+    res.sendFile(indexHtmlPath);
+  });
+} else {
+  app.get('/', (req, res) => {
+    res.json({
+      status: 'online',
+      service: 'FinanceHub REST API Server',
+      database: 'connected',
+      endpoints: [
+        '/users', '/login', '/categories', '/transactions',
+        '/savings-goals', '/subscriptions', '/category-budgets', '/exchange-rates'
+      ],
+      note: 'Frontend client/dist is not built on this web service. Access frontend through its separate URL.'
+    });
+  });
+}
 
 // Запуск сервера
 const PORT = process.env.PORT || 5000;
